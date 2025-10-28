@@ -1,9 +1,10 @@
-// Service Worker - Offline Support
-const CACHE_NAME = 'life-coach-v1';
+// Service Worker - Offline Support with Firebase
+const CACHE_NAME = 'life-coach-v2-firebase';
 const urlsToCache = [
   '/',
   '/index.html',
   '/core.js',
+  '/firebase-config.js',
   '/module-loader.js',
   '/ai-assistant.js',
   '/modules/overview.js',

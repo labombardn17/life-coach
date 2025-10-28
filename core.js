@@ -49,6 +49,11 @@ const LifeCoach = {
         // Setup swipe gestures for iPhone
         this.setupSwipeGestures();
         
+        // Setup Firebase real-time sync
+        setTimeout(() => {
+            this.setupFirebaseSync();
+        }, 1000); // Wait for Firebase to initialize
+        
         // Load initial module (overview)
         await this.switchModule('overview');
         
@@ -197,15 +202,85 @@ const LifeCoach = {
         };
     },
 
-    // Helper: Get Data from LocalStorage
+    // Helper: Get Data (from localStorage, Firebase handles sync in background)
     getData(key) {
         const data = localStorage.getItem(this.storage[key]);
         return data ? JSON.parse(data) : null;
     },
 
-    // Helper: Save Data to LocalStorage
+    // Helper: Save Data (to localStorage AND Firebase)
     saveData(key, data) {
+        // Save to localStorage immediately (for offline and instant access)
         localStorage.setItem(this.storage[key], JSON.stringify(data));
+        
+        // Sync to Firebase if available
+        if (window.firebaseDB && window.firebaseUserId) {
+            const docRef = window.firebaseDB.collection('users').doc(window.firebaseUserId).collection('data').doc(key);
+            docRef.set({
+                data: data,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(err => {
+                console.log('⚠️ Firebase sync queued for later (offline):', key);
+            });
+        }
+    },
+    
+    // Setup Firebase Real-time Listeners
+    setupFirebaseSync() {
+        if (!window.firebaseDB || !window.firebaseUserId) {
+            console.log('⚠️ Firebase not available, using localStorage only');
+            return;
+        }
+        
+        console.log('🔥 Setting up Firebase real-time sync...');
+        
+        // Listen to all data changes
+        Object.keys(this.storage).forEach(key => {
+            const docRef = window.firebaseDB.collection('users').doc(window.firebaseUserId).collection('data').doc(key);
+            
+            docRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const firebaseData = doc.data().data;
+                    const localData = this.getData(key);
+                    
+                    // Only update if Firebase data is newer
+                    if (JSON.stringify(firebaseData) !== JSON.stringify(localData)) {
+                        console.log('📥 Syncing from Firebase:', key);
+                        localStorage.setItem(this.storage[key], JSON.stringify(firebaseData));
+                        
+                        // Refresh the current module if it matches
+                        const moduleMap = {
+                            'ROADMAP': 'roadmap',
+                            'CRM': 'crm',
+                            'CALENDAR': 'calendar',
+                            'HABITS': 'habits',
+                            'WORKOUTS': 'workout',
+                            'LEARN': 'learn',
+                            'IBWORK': 'ibwork',
+                            'TODAY': 'today',
+                            'NOTES': 'notes',
+                            'GOALS': 'goals',
+                            'MANIFESTATION': 'manifestation',
+                            'MOTIVATION': 'motivation'
+                        };
+                        
+                        const moduleName = moduleMap[key];
+                        if (moduleName && window.modules[moduleName] && window.modules[moduleName].refresh) {
+                            window.modules[moduleName].refresh();
+                        }
+                        
+                        // Always refresh overview
+                        if (window.modules.overview && window.modules.overview.refresh) {
+                            window.modules.overview.refresh();
+                        }
+                    }
+                }
+            }, (error) => {
+                console.log('⚠️ Firebase listener error:', error);
+            });
+        });
+        
+        console.log('✅ Firebase real-time sync enabled!');
     },
 
     // Helper: Format Date
