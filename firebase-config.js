@@ -32,8 +32,21 @@
         });
     
     // Get or create user ID
+    // Check URL for sync parameter first
+    const urlParams = new URLSearchParams(window.location.search);
+    const syncId = urlParams.get('syncId');
+    
     let userId = localStorage.getItem('lifeCoach_userId');
-    if (!userId) {
+    
+    // If sync ID in URL, use that and save it
+    if (syncId && syncId.startsWith('user_')) {
+        userId = syncId;
+        localStorage.setItem('lifeCoach_userId', userId);
+        console.log('✅ User ID synced from URL:', userId);
+        // Remove syncId from URL to clean it up
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (!userId) {
+        // Create new user ID
         userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('lifeCoach_userId', userId);
         console.log('✅ New user ID created:', userId);
