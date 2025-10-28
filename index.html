@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Life Coach - Your Complete System</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-bottom: 80px; /* Space for bottom nav */
+            overflow-x: hidden;
+        }
+
+        /* Top Stats Bar - iPhone Safe */
+        .top-stats {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Main Content Area */
+        .content-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .module-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .module-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Bottom Navigation - iPhone Optimized */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-scroll {
+            display: flex;
+            gap: 5px;
+            padding: 0 10px;
+            min-width: min-content;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            color: #666;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .nav-item:active {
+            transform: scale(0.95);
+        }
+
+        .nav-icon {
+            font-size: 1.5em;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.7em;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Loading Indicator */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Quick Action Button */
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            font-size: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 999;
+            transition: transform 0.2s;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        /* Settings Button */
+        .settings-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-value {
+                font-size: 1.2em;
+            }
+            
+            .stat-label {
+                font-size: 0.7em;
+            }
+        }
+
+        /* Module Containers */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-weight: 600;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Stats Bar -->
+    <div class="top-stats">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="week-stat">1</div>
+                <div class="stat-label">Week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="progress-stat">0%</div>
+                <div class="stat-label">Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="streak-stat">0</div>
+                <div class="stat-label">Streak</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Button -->
+    <button class="settings-btn" onclick="window.modules.settings.open()">⚙️</button>
+
+    <!-- Main Content Area -->
+    <div class="content-container">
+        <!-- Loading Indicator -->
+        <div class="loading active" id="loading">
+            <div class="spinner"></div>
+            <div>Loading your life coach...</div>
+        </div>
+
+        <!-- Module Contents (Loaded Dynamically) -->
+        <div id="overview-content" class="module-content"></div>
+        <div id="today-content" class="module-content"></div>
+        <div id="habits-content" class="module-content"></div>
+        <div id="workout-content" class="module-content"></div>
+        <div id="ibwork-content" class="module-content"></div>
+        <div id="calendar-content" class="module-content"></div>
+        <div id="crm-content" class="module-content"></div>
+        <div id="learn-content" class="module-content"></div>
+        <div id="notes-content" class="module-content"></div>
+        <div id="goals-content" class="module-content"></div>
+        <div id="manifestation-content" class="module-content"></div>
+        <div id="motivation-content" class="module-content"></div>
+        <div id="roadmap-content" class="module-content"></div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="window.modules.quickActions.open()" title="Quick Add">
+        ➕
+    </button>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-scroll">
+            <button class="nav-item active" data-module="overview">
+                <div class="nav-icon">☀️</div>
+                <div class="nav-label">Overview</div>
+            </button>
+            <button class="nav-item" data-module="today">
+                <div class="nav-icon">📋</div>
+                <div class="nav-label">Today</div>
+            </button>
+            <button class="nav-item" data-module="habits">
+                <div class="nav-icon">✅</div>
+                <div class="nav-label">Habits</div>
+            </button>
+            <button class="nav-item" data-module="workout">
+                <div class="nav-icon">🏋️</div>
+                <div class="nav-label">Workout</div>
+            </button>
+            <button class="nav-item" data-module="ibwork">
+                <div class="nav-icon">💼</div>
+                <div class="nav-label">IB Work</div>
+            </button>
+            <button class="nav-item" data-module="calendar">
+                <div class="nav-icon">📅</div>
+                <div class="nav-label">Calendar</div>
+            </button>
+            <button class="nav-item" data-module="crm">
+                <div class="nav-icon">👥</div>
+                <div class="nav-label">CRM</div>
+            </button>
+            <button class="nav-item" data-module="learn">
+                <div class="nav-icon">📚</div>
+                <div class="nav-label">Learn</div>
+            </button>
+            <button class="nav-item" data-module="notes">
+                <div class="nav-icon">📓</div>
+                <div class="nav-label">Notes</div>
+            </button>
+            <button class="nav-item" data-module="goals">
+                <div class="nav-icon">🎯</div>
+                <div class="nav-label">Goals</div>
+            </button>
+            <button class="nav-item" data-module="manifestation">
+                <div class="nav-icon">✨</div>
+                <div class="nav-label">Vision</div>
+            </button>
+            <button class="nav-item" data-module="motivation">
+                <div class="nav-icon">💪</div>
+                <div class="nav-label">Daily</div>
+            </button>
+            <button class="nav-item" data-module="roadmap">
+                <div class="nav-icon">📊</div>
+                <div class="nav-label">Roadmap</div>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Core App Logic -->
+    <script src="core.js"></script>
+    
+    <!-- Module System (Lazy Loading) -->
+    <script src="module-loader.js"></script>
+    
+    <!-- AI Assistant (Natural Language) -->
+    <script src="ai-assistant.js"></script>
+
+    <!-- PWA Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed'));
+        }
+    </script>
+</body>
+</html>
