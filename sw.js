@@ -1,25 +1,26 @@
 // Service Worker - Offline Support with Firebase
-const CACHE_NAME = 'life-coach-v2-firebase';
+const CACHE_NAME = 'life-coach-v3-firebase';
+const BASE_PATH = '/life-coach/';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/core.js',
-  '/firebase-config.js',
-  '/module-loader.js',
-  '/ai-assistant.js',
-  '/modules/overview.js',
-  '/modules/today.js',
-  '/modules/habits.js',
-  '/modules/workout.js',
-  '/modules/ibwork.js',
-  '/modules/calendar.js',
-  '/modules/crm.js',
-  '/modules/learn.js',
-  '/modules/notes.js',
-  '/modules/goals.js',
-  '/modules/manifestation.js',
-  '/modules/motivation.js',
-  '/modules/roadmap.js'
+  BASE_PATH,
+  BASE_PATH + 'index.html',
+  BASE_PATH + 'core.js',
+  BASE_PATH + 'firebase-config.js',
+  BASE_PATH + 'module-loader.js',
+  BASE_PATH + 'ai-assistant.js',
+  BASE_PATH + 'modules/overview.js',
+  BASE_PATH + 'modules/today.js',
+  BASE_PATH + 'modules/habits.js',
+  BASE_PATH + 'modules/workout.js',
+  BASE_PATH + 'modules/ibwork.js',
+  BASE_PATH + 'modules/calendar.js',
+  BASE_PATH + 'modules/crm.js',
+  BASE_PATH + 'modules/learn.js',
+  BASE_PATH + 'modules/notes.js',
+  BASE_PATH + 'modules/goals.js',
+  BASE_PATH + 'modules/manifestation.js',
+  BASE_PATH + 'modules/motivation.js',
+  BASE_PATH + 'modules/roadmap.js'
 ];
 
 self.addEventListener('install', event => {
