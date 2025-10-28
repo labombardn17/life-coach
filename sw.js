@@ -1,5 +1,5 @@
 // Service Worker - Offline Support with Firebase
-const CACHE_NAME = 'life-coach-v3-firebase';
+const CACHE_NAME = 'life-coach-v4-settings';
 const BASE_PATH = '/life-coach/';
 const urlsToCache = [
   BASE_PATH,
@@ -20,7 +20,8 @@ const urlsToCache = [
   BASE_PATH + 'modules/goals.js',
   BASE_PATH + 'modules/manifestation.js',
   BASE_PATH + 'modules/motivation.js',
-  BASE_PATH + 'modules/roadmap.js'
+  BASE_PATH + 'modules/roadmap.js',
+  BASE_PATH + 'modules/settings.js'
 ];
 
 self.addEventListener('install', event => {
